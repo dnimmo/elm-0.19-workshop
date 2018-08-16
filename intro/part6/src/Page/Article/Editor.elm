@@ -24,7 +24,6 @@ import Viewer exposing (Viewer)
 import Viewer.Cred as Cred exposing (Cred)
 
 
-
 -- MODEL
 
 
@@ -132,7 +131,7 @@ viewProblem problem =
                 ServerError message ->
                     message
     in
-    li [] [ text errorMessage ]
+        li [] [ text errorMessage ]
 
 
 viewAuthenticated : Cred -> Model -> Html Msg
@@ -165,14 +164,14 @@ viewAuthenticated cred model =
                 LoadingFailed _ ->
                     [ text "Article failed to load." ]
     in
-    div [ class "editor-page" ]
-        [ div [ class "container page" ]
-            [ div [ class "row" ]
-                [ div [ class "col-md-10 offset-md-1 col-xs-12" ]
-                    formHtml
+        div [ class "editor-page" ]
+            [ div [ class "container page" ]
+                [ div [ class "row" ]
+                    [ div [ class "col-md-10 offset-md-1 col-xs-12" ]
+                        formHtml
+                    ]
                 ]
             ]
-        ]
 
 
 viewForm : Cred -> Form -> Html Msg -> Html Msg
@@ -315,9 +314,9 @@ update msg model =
                         , tags = String.join " " tags
                         }
             in
-            ( { model | status = status }
-            , Cmd.none
-            )
+                ( { model | status = status }
+                , Cmd.none
+                )
 
         GotSession session ->
             ( { model | session = session }
@@ -336,7 +335,7 @@ update msg model =
                         other ->
                             other
             in
-            ( { model | status = status }, Cmd.none )
+                ( { model | status = status }, Cmd.none )
 
 
 save : Cred -> Status -> ( Status, Cmd Msg )
@@ -384,15 +383,15 @@ savingError error status =
         problems =
             [ ServerError "Error saving article" ]
     in
-    case status of
-        Saving slug form ->
-            Editing slug problems form
+        case status of
+            Saving slug form ->
+                Editing slug problems form
 
-        Creating form ->
-            EditingNew problems form
+            Creating form ->
+                EditingNew problems form
 
-        _ ->
-            status
+            _ ->
+                status
 
 
 {-| Helper function for `update`. Updates the form, if there is one,
@@ -430,7 +429,7 @@ updateForm transform model =
                 Creating form ->
                     { model | status = Creating (transform form) }
     in
-    ( newModel, Cmd.none )
+        ( newModel, Cmd.none )
 
 
 
@@ -475,12 +474,12 @@ validate form =
         trimmedForm =
             trimFields form
     in
-    case List.concatMap (validateField trimmedForm) fieldsToValidate of
-        [] ->
-            Ok trimmedForm
+        case List.concatMap (validateField trimmedForm) fieldsToValidate of
+            [] ->
+                Ok trimmedForm
 
-        problems ->
-            Err problems
+            problems ->
+                Err problems
 
 
 validateField : TrimmedForm -> ValidatedField -> List Problem
@@ -490,20 +489,16 @@ validateField (Trimmed form) field =
             Title ->
                 if String.isEmpty form.title then
                     [ "title can't be blank." ]
-
                 else
                     []
 
             Body ->
                 if String.isEmpty form.body then
                     [ "body can't be blank." ]
-
                 else if String.trim form.tags /= "" && List.all String.isEmpty (toTagList form.tags) then
                     [ "close, but not quite! Is your filter condition returning True when it should be returning False?" ]
-
                 else if Article.Tag.validate form.tags (toTagList form.tags) then
                     []
-
                 else
                     [ "some tags were empty." ]
 
@@ -545,33 +540,19 @@ create (Trimmed form) cred =
             Encode.object [ ( "article", article ) ]
                 |> Http.jsonBody
     in
-    Api.url [ "articles" ]
-        |> HttpBuilder.post
-        |> Cred.addHeader cred
-        |> withBody jsonBody
-        |> withExpect expect
-        |> HttpBuilder.toRequest
+        Api.url [ "articles" ]
+            |> HttpBuilder.post
+            |> Cred.addHeader cred
+            |> withBody jsonBody
+            |> withExpect expect
+            |> HttpBuilder.toRequest
 
 
 toTagList : String -> List String
 toTagList tagString =
-    {- 👉 TODO #2 of 2: add another |> to the end of this pipeline,
-       which filters out any remaining empty strings.
-
-       To see if the bug is fixed, visit http://localhost:3000/#/editor
-       (you'll need to be logged in) and create an article with tags that have
-       multiple spaces between them, e.g. "tag1     tag2     tag3"
-
-       If the bug has not been fixed, trying to save an article with those tags
-       will result in an error! If it has been fixed, saving will work and the
-       tags will be accepted.
-
-       💡 HINT: Here's how to remove all the "foo" strings from a list of strings:
-
-       List.filter (\str -> str == "foo") listOfStrings
-    -}
     String.split " " tagString
         |> List.map String.trim
+        |> List.filter (\x -> x /= "")
 
 
 edit : Slug -> TrimmedForm -> Cred -> Http.Request (Article Full)
@@ -593,12 +574,12 @@ edit articleSlug (Trimmed form) cred =
             Encode.object [ ( "article", article ) ]
                 |> Http.jsonBody
     in
-    Article.url articleSlug []
-        |> HttpBuilder.put
-        |> Cred.addHeader cred
-        |> withBody jsonBody
-        |> withExpect expect
-        |> HttpBuilder.toRequest
+        Article.url articleSlug []
+            |> HttpBuilder.put
+            |> Cred.addHeader cred
+            |> withBody jsonBody
+            |> withExpect expect
+            |> HttpBuilder.toRequest
 
 
 

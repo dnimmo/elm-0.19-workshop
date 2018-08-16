@@ -7,7 +7,6 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
 
 
-
 -- TYPES
 
 
@@ -33,19 +32,18 @@ src (Avatar maybeUrl) =
     Html.Attributes.src <|
         if maybeUrl == Just "" then
             resolveAvatarUrl Nothing
-
         else
             resolveAvatarUrl maybeUrl
 
 
 resolveAvatarUrl : Maybe String -> String
 resolveAvatarUrl maybeUrl =
-    {- 👉 TODO #1 of 2: return the user's avatar from maybeUrl, if maybeUrl actually
-       contains one. If maybeUrl is Nothing, return this URL instead:
+    case maybeUrl of
+        Just value ->
+            value
 
-          https://static.productionready.io/images/smiley-cyrus.jpg
-    -}
-    ""
+        Nothing ->
+            "https://static.productionready.io/images/smiley-cyrus.jpg"
 
 
 encode : Avatar -> Value
