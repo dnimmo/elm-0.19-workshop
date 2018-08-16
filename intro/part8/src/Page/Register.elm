@@ -15,7 +15,6 @@ import Viewer exposing (Viewer)
 import Viewer.Cred as Cred exposing (Cred)
 
 
-
 -- MODEL
 
 
@@ -126,7 +125,7 @@ viewProblem problem =
                 ServerError str ->
                     str
     in
-    li [] [ text errorMessage ]
+        li [] [ text errorMessage ]
 
 
 
@@ -155,36 +154,15 @@ update msg model =
                 responseDecoder =
                     Decode.field "user" Viewer.decoder
 
-                {- 👉 TODO: Create a Http.Request value that represents
-                      a POST request to "/api/users"
-
-                   💡 HINT 1: Documentation for `Http.post` is here:
-
-                       http://package.elm-lang.org/packages/elm-lang/http/1.0.0/Http#post
-
-                   💡 HINT 2: Look at the values defined above in this
-                   let-expression. What are their types? What are the types the
-                   `Http.post` function is looking for?
-                -}
                 request : Http.Request Viewer
                 request =
-                    Debug.todo "Call Http.post to represent a POST to /api/users"
+                    Http.post "/api/users" requestBody responseDecoder
 
-                {- 👉 TODO: Use Http.send to turn the request we just defined
-                   into a Cmd for `update` to execute.
-
-                   💡 HINT 1: Documentation for `Http.send` is here:
-
-                    http://package.elm-lang.org/packages/elm-lang/http/1.0.0/Http#send
-
-                   💡 HINT 2: The `CompletedRegister` variant defined in `type Msg`
-                    will be useful here!
-                -}
                 cmd : Cmd Msg
                 cmd =
-                    Cmd.none
+                    Http.send CompletedRegister request
             in
-            ( { model | problems = [] }, cmd )
+                ( { model | problems = [] }, cmd )
 
         EnteredUsername username ->
             updateForm (\form -> { form | username = username }) model
@@ -201,9 +179,9 @@ update msg model =
                     Api.decodeErrors error
                         |> List.map ServerError
             in
-            ( { model | problems = List.append model.problems serverErrors }
-            , Cmd.none
-            )
+                ( { model | problems = List.append model.problems serverErrors }
+                , Cmd.none
+                )
 
         CompletedRegister (Ok viewer) ->
             ( model
@@ -234,8 +212,8 @@ encodeJsonBody form =
                 , ( "password", Encode.string form.password )
                 ]
     in
-    Encode.object [ ( "user", user ) ]
-        |> Http.jsonBody
+        Encode.object [ ( "user", user ) ]
+            |> Http.jsonBody
 
 
 
@@ -291,12 +269,12 @@ validate form =
         trimmedForm =
             trimFields form
     in
-    case List.concatMap (validateField trimmedForm) fieldsToValidate of
-        [] ->
-            Ok trimmedForm
+        case List.concatMap (validateField trimmedForm) fieldsToValidate of
+            [] ->
+                Ok trimmedForm
 
-        problems ->
-            Err problems
+            problems ->
+                Err problems
 
 
 validateField : TrimmedForm -> ValidatedField -> List Problem
@@ -306,24 +284,20 @@ validateField (Trimmed form) field =
             Username ->
                 if String.isEmpty form.username then
                     [ "username can't be blank." ]
-
                 else
                     []
 
             Email ->
                 if String.isEmpty form.email then
                     [ "email can't be blank." ]
-
                 else
                     []
 
             Password ->
                 if String.isEmpty form.password then
                     [ "password can't be blank." ]
-
                 else if String.length form.password < Viewer.minPasswordChars then
                     [ "password must be at least " ++ String.fromInt Viewer.minPasswordChars ++ " characters long." ]
-
                 else
                     []
 
