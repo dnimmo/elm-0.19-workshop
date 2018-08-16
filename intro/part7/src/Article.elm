@@ -52,7 +52,6 @@ import Viewer exposing (Viewer)
 import Viewer.Cred as Cred exposing (Cred)
 
 
-
 -- TYPES
 
 
@@ -68,7 +67,7 @@ This definition for `Article` means we can write:
 viewArticle : Article Full -> Html msg
 viewFeed : List (Article Preview) -> Html msg
 
-This indicates that `viewArticle` requires an article _with a `body` present_,
+This indicates that `viewArticle` requires an article *with a `body` present*,
 wereas `viewFeed` accepts articles with no bodies. (We could also have written
 it as `List (Article a)` to specify that feeds can accept either articles that
 have `body` present or not. Either work, given that feeds do not attempt to
@@ -197,11 +196,11 @@ metadataDecoder =
        as the order of the fields in `type alias Metadata` above. ☝️
     -}
     Decode.succeed Metadata
-        |> hardcoded "(needs decoding!)"
-        |> hardcoded "(needs decoding!)"
-        |> hardcoded []
-        |> hardcoded False
-        |> hardcoded 0
+        |> required "description" string
+        |> required "title" string
+        |> required "tagList" (list string)
+        |> required "favorited" bool
+        |> required "favoritesCount" int
         |> required "createdAt" Timestamp.iso8601Decoder
 
 
@@ -217,11 +216,11 @@ fetch maybeCred articleSlug =
                 |> Decode.field "article"
                 |> Http.expectJson
     in
-    url articleSlug []
-        |> HttpBuilder.get
-        |> HttpBuilder.withExpect expect
-        |> Cred.addHeaderIfAvailable maybeCred
-        |> HttpBuilder.toRequest
+        url articleSlug []
+            |> HttpBuilder.get
+            |> HttpBuilder.withExpect expect
+            |> Cred.addHeaderIfAvailable maybeCred
+            |> HttpBuilder.toRequest
 
 
 
@@ -250,10 +249,10 @@ buildFavorite builderFromUrl articleSlug cred =
                 |> Decode.field "article"
                 |> Http.expectJson
     in
-    builderFromUrl (url articleSlug [ "favorite" ])
-        |> Cred.addHeader cred
-        |> withExpect expect
-        |> HttpBuilder.toRequest
+        builderFromUrl (url articleSlug [ "favorite" ])
+            |> Cred.addHeader cred
+            |> withExpect expect
+            |> HttpBuilder.toRequest
 
 
 {-| This is a "build your own element" API.
