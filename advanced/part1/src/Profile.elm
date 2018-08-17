@@ -16,7 +16,6 @@ import Username exposing (Username)
 import Viewer.Cred as Cred exposing (Cred)
 
 
-
 -- TYPES
 
 

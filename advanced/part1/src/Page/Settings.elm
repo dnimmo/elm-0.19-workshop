@@ -17,8 +17,7 @@ import Route
 import Session exposing (Session)
 import Username as Username exposing (Username)
 import Viewer exposing (Viewer)
-import Viewer.Cred as Cred exposing (Cred)
-
+import Viewer.Cred as Cred exposing (Cred, username)
 
 
 -- MODEL
@@ -59,12 +58,12 @@ init session =
                         cred =
                             Viewer.cred viewer
                     in
-                    { avatar = Maybe.withDefault "" (Avatar.toMaybeString (Profile.avatar profile))
-                    , email = Email.toString (Viewer.email viewer)
-                    , bio = Maybe.withDefault "" (Profile.bio profile)
-                    , username = Username.toString cred.username
-                    , password = ""
-                    }
+                        { avatar = Maybe.withDefault "" (Avatar.toMaybeString (Profile.avatar profile))
+                        , email = Email.toString (Viewer.email viewer)
+                        , bio = Maybe.withDefault "" (Profile.bio profile)
+                        , username = Username.toString (username cred)
+                        , password = ""
+                        }
 
                 Nothing ->
                     -- It's fine to store a blank form here. You won't be
@@ -189,7 +188,7 @@ viewProblem problem =
                 ServerError message ->
                     message
     in
-    li [] [ text errorMessage ]
+        li [] [ text errorMessage ]
 
 
 
@@ -244,9 +243,9 @@ update msg model =
                     Api.decodeErrors error
                         |> List.map ServerError
             in
-            ( { model | problems = List.append model.problems serverErrors }
-            , Cmd.none
-            )
+                ( { model | problems = List.append model.problems serverErrors }
+                , Cmd.none
+                )
 
         CompletedSave (Ok cred) ->
             ( model
@@ -323,12 +322,12 @@ validate form =
         trimmedForm =
             trimFields form
     in
-    case List.concatMap (validateField trimmedForm) fieldsToValidate of
-        [] ->
-            Ok trimmedForm
+        case List.concatMap (validateField trimmedForm) fieldsToValidate of
+            [] ->
+                Ok trimmedForm
 
-        problems ->
-            Err problems
+            problems ->
+                Err problems
 
 
 validateField : TrimmedForm -> ValidatedField -> List Problem
@@ -338,14 +337,12 @@ validateField (Trimmed form) field =
             Username ->
                 if String.isEmpty form.username then
                     [ "username can't be blank." ]
-
                 else
                     []
 
             Email ->
                 if String.isEmpty form.email then
                     [ "email can't be blank." ]
-
                 else
                     []
 
@@ -354,11 +351,10 @@ validateField (Trimmed form) field =
                     passwordLength =
                         String.length form.password
                 in
-                if passwordLength > 0 && passwordLength < Viewer.minPasswordChars then
-                    [ "password must be at least " ++ String.fromInt Viewer.minPasswordChars ++ " characters long." ]
-
-                else
-                    []
+                    if passwordLength > 0 && passwordLength < Viewer.minPasswordChars then
+                        [ "password must be at least " ++ String.fromInt Viewer.minPasswordChars ++ " characters long." ]
+                    else
+                        []
 
 
 {-| Don't trim while the user is typing! That would be super annoying.
@@ -417,18 +413,17 @@ edit cred (Trimmed form) =
             Decode.field "user" Viewer.decoder
                 |> Http.expectJson
     in
-    Api.url [ "user" ]
-        |> HttpBuilder.put
-        |> HttpBuilder.withExpect expect
-        |> HttpBuilder.withBody body
-        |> Cred.addHeader cred
-        |> HttpBuilder.toRequest
+        Api.url [ "user" ]
+            |> HttpBuilder.put
+            |> HttpBuilder.withExpect expect
+            |> HttpBuilder.withBody body
+            |> Cred.addHeader cred
+            |> HttpBuilder.toRequest
 
 
 nothingIfEmpty : String -> Maybe String
 nothingIfEmpty str =
     if String.isEmpty str then
         Nothing
-
     else
         Just str

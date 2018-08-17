@@ -23,7 +23,7 @@ possibilities straight when displaying follow buttons and such:
 
   - I'm following this author.
   - I'm not following this author.
-  - I _can't_ follow this author, because it's me!
+  - I *can't* follow this author, because it's me!
 
 To do this, I defined `Author` a custom type with three variants, one for each
 of those possibilities.
@@ -60,7 +60,7 @@ import Profile exposing (Profile)
 import Route exposing (Route)
 import Username exposing (Username)
 import Viewer exposing (Viewer)
-import Viewer.Cred as Cred exposing (Cred)
+import Viewer.Cred as Cred exposing (Cred, username)
 
 
 {-| An author - either the current user, another user we're following, or
@@ -68,7 +68,7 @@ another user we aren't following.
 
 These distinctions matter because we can only perform "follow" requests for
 users we aren't following, we can only perform "unfollow" requests for
-users we _are_ following, and we can't perform either for ourselves.
+users we *are* following, and we can't perform either for ourselves.
 
 -}
 type Author
@@ -95,7 +95,7 @@ username : Author -> Username
 username author =
     case author of
         IsViewer cred _ ->
-            cred.username
+            Cred.username cred
 
         IsFollowing (FollowedAuthor val _) ->
             val
@@ -194,10 +194,10 @@ toggleFollowButton txt extraClasses msgWhenClicked uname =
         caption =
             " " ++ txt ++ " " ++ Username.toString uname
     in
-    Html.button [ class classStr, onClick msgWhenClicked ]
-        [ i [ class "ion-plus-round" ] []
-        , text caption
-        ]
+        Html.button [ class classStr, onClick msgWhenClicked ]
+            [ i [ class "ion-plus-round" ] []
+            , text caption
+            ]
 
 
 
@@ -220,9 +220,8 @@ decodeFromPair maybeCred ( prof, uname ) =
             Decode.succeed (IsNotFollowing (UnfollowedAuthor uname prof))
 
         Just cred ->
-            if uname == cred.username then
+            if uname == Cred.username cred then
                 Decode.succeed (IsViewer cred prof)
-
             else
                 nonViewerDecoder prof uname
 
@@ -237,7 +236,6 @@ authorFromFollowing : Profile -> Username -> Bool -> Author
 authorFromFollowing prof uname isFollowing =
     if isFollowing then
         IsFollowing (FollowedAuthor uname prof)
-
     else
         IsNotFollowing (UnfollowedAuthor uname prof)
 

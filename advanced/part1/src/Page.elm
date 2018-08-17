@@ -10,7 +10,7 @@ import Route exposing (Route)
 import Session exposing (Session)
 import Username exposing (Username)
 import Viewer exposing (Viewer)
-import Viewer.Cred as Cred exposing (Cred)
+import Viewer.Cred as Cred exposing (Cred, username)
 
 
 {-| Determines which navbar link (if any) will be rendered as active.
@@ -65,32 +65,32 @@ viewMenu page maybeViewer =
         linkTo =
             navbarLink page
     in
-    case maybeViewer of
-        Just viewer ->
-            let
-                cred =
-                    Viewer.cred viewer
+        case maybeViewer of
+            Just viewer ->
+                let
+                    cred =
+                        Viewer.cred viewer
 
-                { username } =
-                    cred
+                    username =
+                        Cred.username cred
 
-                avatar =
-                    Profile.avatar (Viewer.profile viewer)
-            in
-            [ linkTo Route.NewArticle [ i [ class "ion-compose" ] [], text " New Post" ]
-            , linkTo Route.Settings [ i [ class "ion-gear-a" ] [], text " Settings" ]
-            , linkTo
-                (Route.Profile username)
-                [ img [ class "user-pic", Avatar.src avatar ] []
-                , Username.toHtml username
+                    avatar =
+                        Profile.avatar (Viewer.profile viewer)
+                in
+                    [ linkTo Route.NewArticle [ i [ class "ion-compose" ] [], text " New Post" ]
+                    , linkTo Route.Settings [ i [ class "ion-gear-a" ] [], text " Settings" ]
+                    , linkTo
+                        (Route.Profile username)
+                        [ img [ class "user-pic", Avatar.src avatar ] []
+                        , Username.toHtml username
+                        ]
+                    , linkTo Route.Logout [ text "Sign out" ]
+                    ]
+
+            Nothing ->
+                [ linkTo Route.Login [ text "Sign in" ]
+                , linkTo Route.Register [ text "Sign up" ]
                 ]
-            , linkTo Route.Logout [ text "Sign out" ]
-            ]
-
-        Nothing ->
-            [ linkTo Route.Login [ text "Sign in" ]
-            , linkTo Route.Register [ text "Sign up" ]
-            ]
 
 
 viewFooter : Html msg
@@ -144,7 +144,6 @@ viewErrors : msg -> List String -> Html msg
 viewErrors dismissErrors errors =
     if List.isEmpty errors then
         Html.text ""
-
     else
         div
             [ class "error-messages"
