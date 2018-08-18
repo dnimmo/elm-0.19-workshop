@@ -52,7 +52,6 @@ import Viewer exposing (Viewer)
 import Viewer.Cred as Cred exposing (Cred)
 
 
-
 -- TYPES
 
 
@@ -68,7 +67,7 @@ This definition for `Article` means we can write:
 viewArticle : Article Full -> Html msg
 viewFeed : List (Article Preview) -> Html msg
 
-This indicates that `viewArticle` requires an article _with a `body` present_,
+This indicates that `viewArticle` requires an article *with a `body` present*,
 wereas `viewFeed` accepts articles with no bodies. (We could also have written
 it as `List (Article a)` to specify that feeds can accept either articles that
 have `body` present or not. Either work, given that feeds do not attempt to
@@ -99,10 +98,10 @@ of these fields!
 (Okay, to be completely honest, exposing one function per field is how I prefer
 to do it, and that's how I originally wrote this module. However, I'm aware that
 this code base has become a common reference point for beginners, and I think it
-is _extremely important_ that slapping some "getters and setters" on a record
+is *extremely important* that slapping some "getters and setters" on a record
 does not become a habit for anyone who is getting started with Elm. The whole
 point of making the Article type opaque is to create guarantees through
-_selectively choosing boundaries_ around it. If you aren't selective about
+*selectively choosing boundaries* around it. If you aren't selective about
 where those boundaries are, and instead expose a "getter and setter" for every
 field in the record, the result is an API with no more guarantees than if you'd
 exposed the entire record directly! It is so important to me that beginners not
@@ -159,8 +158,8 @@ slug (Article internals _) =
 
 
 body : Article Full -> Body
-body _ =
-    "👉 TODO make this return the article's body"
+body (Article _ (Full fullBody)) =
+    fullBody
 
 
 
@@ -181,8 +180,8 @@ mapAuthor transform (Article info extras) =
 
 
 fromPreview : Body -> Article Preview -> Article Full
-fromPreview _ _ =
-    "👉 TODO convert from an Article Preview to an Article Full"
+fromPreview fullBody (Article internals Preview) =
+    Article internals (Full fullBody)
 
 
 
@@ -200,7 +199,7 @@ fullDecoder : Maybe Cred -> Decoder (Article Full)
 fullDecoder maybeCred =
     Decode.succeed Article
         |> custom (internalsDecoder maybeCred)
-        |> required "body" "👉 TODO use `Body.decoder` (which is a `Decoder Body`) to decode the body into this Article Full"
+        |> required "body" (Decode.map Full Body.decoder)
 
 
 internalsDecoder : Maybe Cred -> Decoder Internals
@@ -234,11 +233,11 @@ fetch maybeCred articleSlug =
                 |> Decode.field "article"
                 |> Http.expectJson
     in
-    url articleSlug []
-        |> HttpBuilder.get
-        |> HttpBuilder.withExpect expect
-        |> Cred.addHeaderIfAvailable maybeCred
-        |> HttpBuilder.toRequest
+        url articleSlug []
+            |> HttpBuilder.get
+            |> HttpBuilder.withExpect expect
+            |> Cred.addHeaderIfAvailable maybeCred
+            |> HttpBuilder.toRequest
 
 
 
@@ -267,10 +266,10 @@ buildFavorite builderFromUrl articleSlug cred =
                 |> Decode.field "article"
                 |> Http.expectJson
     in
-    builderFromUrl (url articleSlug [ "favorite" ])
-        |> Cred.addHeader cred
-        |> withExpect expect
-        |> HttpBuilder.toRequest
+        builderFromUrl (url articleSlug [ "favorite" ])
+            |> Cred.addHeader cred
+            |> withExpect expect
+            |> HttpBuilder.toRequest
 
 
 {-| This is a "build your own element" API.
